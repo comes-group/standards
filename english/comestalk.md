@@ -76,7 +76,7 @@ ComesTalk uses the following characters for punctuation:
 | `=` | 3Dh | Variable assignment. |
 | `<-` | 3Ch 2Dh | Method declaration. |
 | `->` | 2Dh 3Eh | Returning values. |
-| `|` | 7Ch | Chaining messages. |
+| <code>\|</code> | 7Ch | Chaining messages. |
 
 ## Syntax
 
