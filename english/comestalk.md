@@ -58,7 +58,7 @@ Any byte is permitted in string literals, including line breaks, and sequences t
 
 Identifiers in ComesTalk start with a letter or a dash `-` (2Dh), followed by zero or more letters, dashes, or digits.
 
-Letters include the ASCII range `A`-`Z` (41h-5Ah), `a`-`z` (61h-7Ah), as well as _any_ Unicode codepoints. Note that grapheme clusters do not undergo any normalization, so `ź` (U+017A) and `ź` (U+007A followed by U+0301) are different identifiers! Code should avoid using combining marks and instead use dedicated codepoints for letters with diacritics instead. The standard library must follow this convention.
+Letters include the ASCII range `A`-`Z` (41h-5Ah), `a`-`z` (61h-7Ah), as well as _any_ Unicode codepoints outside of the ASCII range. Note that grapheme clusters do not undergo any normalization, so `ź` (U+017A) and `ź` (U+007A followed by U+0301) are different identifiers! Code should avoid using combining marks and instead use dedicated codepoints for letters with diacritics instead. The standard library must follow this convention.
 
 ### Brackets
 
