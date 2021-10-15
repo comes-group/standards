@@ -306,6 +306,7 @@ Kot <- imię {
 mruczek = Kot o-imieniu: "Mruczek";
 mruczek imię wypisz;
 ```
+As shown in the example above, variables in the field store persist across different message calls.
 
 ### Closures
 
