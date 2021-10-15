@@ -1,0 +1,445 @@
+--------------------------------------------------------------------------------
+
+                 .c:.    .:,.     ..                      ..    ':'
+                 .::c:;. 'cc:;'. .:c,..  .,,.    ';.     .:c,.. ,cc:,'..
+         ',. ....;:;cllc;::;:cc:..:::cc,.':c:;'. ,c:;,.  .:::cc::;,:lclc,.
+         ;l:;:lccc,;cccllcccc:;::cc;,:::ccc;;cl:;::,:lc;,::,,:llc:,,;:c;:c:,.
+      .';::;clc;:lccc;,clclc:cclllcc:;;:lllc:;;:llc;;;;clc:;;,:c:ccccc;',::c'
+      .;lc::cc;,,::cc,,,;:c;,;ccll;;llclllc:ccccllccc::c:;clc:c:,;ccc:,'',,:,
+    .',:;;cll:,,,;:cc:;;;cc:::::c:,,;;:lol:,;ccllc,;cccc,';::c:,',,;:c;;::;:;.
+    ;lcc;;;;:c::;,'....  .....',;;;:;;:cc:,',;;cc,',,;:c,'',;c:,,;:::;,'......
+ ...::;clc:,:c;.    ...',,,,,'......'',;;;;:;;:lc;,,,;cc;;;::c:,,'..   ...'...
+ ,lcc;,;::cc,.  .';cooddddddddddoc;'.    ....'',,,,,',,,''....      .,codddddoc.
+.;:;clc:;::.  .:odddoc;,,'...'',;codoc'.                           .ldol:;;;:;,.
+;:,,;::cc,. .:oddl;'......''    .;,,lddlc;.     .,,.       .'.    .ldo,.;,.
+c;''',;c'  'lddc,.'cxOKK00NNc  ,0Wx..,ldddl,   'kNX:      :KNO'  .:dd;.dNNx.
+::;;;::.  ;odl,.,xXWXOddxKWWx. 'OMX:  .;lodoc.'kWNd.     ,0WWWd  'odo,cNWWNc
+......   ;do;..dXWKo'    ,xOc   lNWx.   .'ldocxWWx.      oWWWW0'.cddc,xWWWWx.
+        ,oc. ,OWNx'             .OWXc     .ccdXW0'      .OWWWWNc,odd:cXWNNWO.
+       'l;. ;KWXl.               cXWO.      :KWXl.      :XWKONWkcodl:kWXxOMX;
+      .;.  ,0WX:                 .kWNl     .kWNxcc.    .xWWo;0MKlld:oNWx.lWWo
+          .dWNo                   :XW0'    oNWkcodl'   :XMK,.dWWxccl0MK; ,KMO.
+          '0MK,                   .xWWo   :XW0,.cddo;..kWWd. ;KMKc;kWNl  .xMNc
+          .OMX;          ..        ,KMK; '0WXc  .:ddd:lXMK;.,:kWWkdNWk.   cNWk.
+           lNWO,      .;d0Xo.       oNW0dOWNd.    ,oolOWWkcodllKWNNWK;    'OWNc
+           .lXWXklccox0NWKd,        .kWWWWWk.      .'lKMXoldoc'dWWWNo      oNWO.
+             'oOXNWNNKOd:.           ;KWWW0'         :NWO;''.  'OWNd.      '0MNc
+               .':cc;'.               cXWK;          .x0:       'dl.        cXK;
+
+--------------------------------------------------------------------------------
+
+  SPECYFIKACJA COMES VIRTUAL MACHINE (CVM)
+  ORAZ JĘZYKA COMES VIRTUAL MACHINE ASSEMBLY (CVMA)
+    Autor: liquidev
+    Wersja CVM: 1        Wersja CVMA: 1
+
+--------------------------------------------------------------------------------
+
+CVM jest nowatorskim rozwiązaniem na problem przenośności programów. Każdy
+program CVM jest zapisany w formacie CVMA, COMES Virtual Machine Assembly.
+
+CVM jest maszyną wirtualną opartą na stosie wartości.
+
+---------
+DEFINICJE
+---------
+
+WARTOŚĆ - Pojedyncza wartość na stosie. Jest liczbą całkowitą 64-bitową.
+Może reprezentować wszystko, co jest w stanie się zmieścić w 64 bitach -
+wszystkie rozmiary liczb całkowitych od 1-64 bitów, liczby zmiennoprzecinkowe
+32 oraz 64 bitowe, adresy w pamięci, itd.
+
+OPKOD - Unikatowy kod identyfikujący dostępną instrukcję maszyny wirtualnej.
+Jako oficjalną reprezentację opkodu uznaje się instrukcje zapisywane w plikach
+CVMA. Poszczególne implementacje mogą dowolnie tworzyć własne, bardziej
+efektywne reprezentacje.
+
+INSTRUKCJA - Operacja na wartościach w CVM zapisana jako OPKOD + WARTOŚĆ
+w 10 bajtach. Implementacje powinny rezerwować co najmniej 2 bajty na OPKOD.
+
+PROCEDURA - Kawałek kodu wykonywany przez CVM. Przechowuje swoje ID, nazwę, oraz
+ilość argumentów.
+
+------------------
+OPERACJE NA STOSIE
+------------------
+
+Stos CVM składa się z dwóch części:
+ - Rozszerzalnej listy wartości,
+ - Wskaźnika dołu stosu.
+Lista wartości jest to lista do której można dowolnie dodawać elementy na koniec
+oraz usuwać elementy z końca. Rozmiar listy powinien się rozszerzać zależnie od
+potrzeby. Lista wartości musi być indeksowalna, gdzie pierwszy indeks to 0.
+Wskaźnik dołu stosu to indeks pierwszego argumentu lub pierwszej zmiennej
+obecnie wykonywanej funkcji.
+
+Ten dokument wykorzystuje kilka skróconych nazw oraz elementów notacji do
+opisywania operacji na stosie:
+- x = y - przypisz wartość y do tymczasowej zmiennej x.
+  Wszystkie tymczasowe zmienne tracą ważność po wykonaniu instrukcji.
+- x = Len - przypisz długość stosu do zmiennej tymczasowej x.
+- x = Bottom - przypisz wskaźnik dołu stosu do zmiennej tymczasowej x.
+- x = [n] - skopiuj wartość z indeksu n listy do zmiennej tymczasowej x.
+- Push(x) - dodaj wartość x na koniec stosu.
+- x = Pop() - zdejmij wartość z końca stosu i zapisz ją
+  w zmiennej tymczasowej x.
+- x = Peek() - to samo co x = [Len - 1].
+
+---------
+PROCEDURY
+---------
+
+Procedura to kawałek kodu, wraz z nazwą oraz liczbą parametrów. Każdy program
+posiada listę procedur, i każda procedura jest identyfikowana po jej indeksie w
+tej liście.
+
+W dokumentacji opkodów użyta jest funkcja GetProc(p), która zwraca procedurę o
+danym indeksie p.
+
+-----------
+WYKONYWANIE
+-----------
+
+Wykonywanie rozpoczyna się w procedurze o indeksie 0. Procedura ta nie otrzymuje
+żadnych parametrów.
+
+Interpreter czyta instrukcje, dopóki nie napotka instrukcji STOP. Ta instrukcja
+zatrzymuje wykonywanie programu oraz zwalnia wszystkie zaalokowane przez niego
+zasoby.
+
+Podczas czytania instrukcji mają znaczenie dwie zmienne:
+ - Proc, czyli obecnie wykonywana procedura
+ - PC, czyli "licznik programu".
+PC wskazuje obecną pozycję w kodzie procedury, i z każdą instrukcją (oprócz tych
+z rodziny IDŹDO przy udanym skoku) zwiększa się o 1.
+
+Skakanie po kodzie jest opisane w tablicy opkodów.
+
+Oprócz tych dwóch zmiennych, istnieje również drugi stos, zwany CallStack. Stos
+ten przechowuje ślady kolejno wywoływanych funkcji. Kiedy funkcja jest wywołana,
+struktura CallFrame jest wepchnięta na górę CallStack. Struktura ta przechowuje
+kopię obecnych PC, Proc, oraz Bottom. Kiedy interpreter napotka instrukcję WRÓĆ,
+struktura jest zabrana ze stosu i obecne PC, Proc, oraz Bottom są ustawione na
+wartości ze struktury.
+
+W tym dokumencie używa się dwóch skrótów do manipulacji stosem CallStack:
+- PushCall() - zapisuje obecny CallFrame na stosie CallStack:
+    CallStack.Push({
+      .Bottom = Bottom,
+      .PC = PC,
+      .Proc = Proc,
+    })
+- x = PopCall() - ściąga obecny CallFrame ze stosu CallStack:
+    x = CallStack.Pop()
+
+-----------------------------------------
+PSEUDOKOD: ZBIÓR ZMIENNYCH TWORZĄCYCH CVM
+-----------------------------------------
+
+type Value = UInteger64
+type Procedure = struct {
+  Name: String,
+  ParameterCount: Integer,
+  Code: C, // zależne od implementacji
+}
+type CallFrame = struct {
+  Bottom: Integer,
+  PC: Integer,
+  Proc: Procedure,
+}
+
+var Stack: Array<Value>
+var Bottom: Integer
+var PC: Integer
+var Proc: Procedure
+var CallStack: Array<CallFrame>
+
+----------------------------
+TABLICA REFERENCYJNA OPKODÓW
+----------------------------
+
+Symbole:
+  x, y, z - wartości
+  a - adres w kodzie
+  n - indeks zmiennej
+  p - indeks procedury
+  0 - operand 0
+
+Operacje na stosie
+==================
+
+PCHNIJ x - dodaj wartość na stos
+  Push(x)
+USUŃ 0 - usuń wartość ze stosu
+  Pop()
+ZMIENNA.K n - kopiuj zmienną
+  x = [Bottom + n]
+  Push(x)
+ZMIENNA.U n - ustaw zmienną
+  x = Pop()
+  [Bottom + n] = x
+
+Arytmetyka
+==========
+
+<TYP> to C lub Z.
+
+Zachowanie danej operacji jest zależne od jej typu.
+Typ C to liczby całkowite ze znakiem.
+Typ Z to liczby zmiennoprzecinkowe binary64 zgodne ze standardem IEEE 754 dla
+arytmetyki na liczbach zmiennoprzecinkowych.
+
+Pseudokod instrukcji używa standardowych operatorów matematycznych +, -, *, /,
+oraz operatora "mod" do obliczania reszty z dzielenia. Operator / użyty na
+liczbach całkowitych powinien zaokrąglać w kierunku -∞. Operator mod to operacja
+modulo, a nie reszta z dzielenia (nazwa RESZTA jest błędna).
+
+DODAJ.<TYP> 0 - dodaj liczby
+  y = Pop()
+  x = Pop()
+  Push(x + y)
+ODEJM.<TYP> 0 - odejmij liczby
+  y = Pop()
+  x = Pop()
+  Push(x - y)
+MNÓŻ.<TYP> 0 - pomnóż liczby
+  y = Pop()
+  x = Pop()
+  Push(x * y)
+DZIEL.<TYP> 0 - podziel liczby
+  y = Pop()
+  x = Pop()
+  Push(x / y)
+RESZTA.<TYP> 0 - oblicz resztę z dzielenia
+  y = Pop()
+  x = Pop()
+  Push(x mod y)
+JAKO.CZ 0 - konwertuj liczbę całkowitą do liczby zmiennoprzecinkowej
+JAKO.ZC 0 - konwertuj liczbę zmiennoprzecinkową do liczby całkowitej
+  Te operacje operują na wartości na górze stosu.
+
+Porównania
+==========
+
+NIE.L 0 - odwraca wartość logiczną 0/1. Operuje jedynie na liczbach całkowitych
+  x = Pop()
+  if x == 0
+    Push(1)
+  else
+    Push(0)
+RÓWNE 0 - zwraca wartość 0/1 sygnalizującą czy dwie wartości są równe
+RÓWNE.Z 0 - to samo co RÓWNE, ale używa równości wartości zmiennoprzecinkowych
+  y = Pop()
+  x = Pop()
+  Push(x == y)
+MNIEJ.C 0, MNIEJ.Z 0 - zwraca 0/1, czy jedna liczba jest mniejsza od drugiej
+  y = Pop()
+  x = Pop()
+  Push(x < y)
+MNRÓW.C 0, MNRÓW.Z 0 - zwraca 0/1, czy jedna liczba jest mniejsza
+lub równa drugiej
+  y = Pop()
+  x = Pop()
+  Push(x <= y)
+
+Operację nierówności != można uzyskać poprzez wykonanie operacji NIE.L po
+operacji RÓWNE.
+
+Operacje > oraz >= można uzyskać poprzez odwrócenie kolejności w której wartości
+są wepchane na stos.
+
+Operacje bitowe
+===============
+
+Instrukcje tutaj wymienione operują jedynie na liczbach całkowitych.
+Pseudokod instrukcji wykorzystuje następujących operatorów:
+- "~" - NOT
+- "and" - AND
+- "or" - OR
+- "xor" - XOR
+- "<<" - przesunięcie bitowe w lewo
+- ">>" - przesunięcie bitowe w prawo
+
+NIE.B 0 - odwraca wszystkie bity w wartości
+  x = Pop()
+  Push(~x)
+I 0 - operacja bitowa AND
+  y = Pop()
+  x = Pop()
+  Push(x and y)
+LUB 0 - operacja bitowa OR
+  y = Pop()
+  x = Pop()
+  Push(x or y)
+XLUB 0 - operacja bitowa XOR
+  y = Pop()
+  x = Pop()
+  Push(x xor y)
+PRZESUŃ.L - operacja bitowa przesunięcia w lewo
+  y = Pop()
+  x = Pop()
+  Push(x << y)
+PRZESUŃ.P - operacja bitowa przesunięcia w lewo
+  y = Pop()
+  x = Pop()
+  Push(x >> y)
+
+Operacje NAND, NOR, oraz XNOR można uzyskać poprzez połączenie istniejących
+operacji bitowych z operatorem NIE.B.
+
+Manipulacja rejestrem PC
+========================
+
+IDŹDO a - idź bezpośrednio do adresu
+  PC = a
+IDŹDO.ZE a - idź do adresu jeżeli wartość na stosie wynosi 0
+  x = Pop()
+  if x == 0
+    PC = a
+IDŹDO.NZ a - idź do adresu jeżeli wartość na stosie nie wynosi 0
+  x = Pop()
+  if x != 0
+    PC = a
+WYWOŁAJ p - wywołaj procedurę
+  PushCall()
+  Proc = GetProc(p)
+  PC = 0
+  Bottom = Len - Proc.ParameterCount
+WRÓĆ 0 - wróć do wywołującej procedury
+  f = PopCall()
+  while Len > Bottom + 1  ; zostawia pierwszy argument na stosie
+    Pop()
+  Proc = f.Proc
+  PC = f.PC
+  Bottom = f.Bottom
+STOP 0
+  Zatrzymuje wykonywanie kodu.
+
+Komunikacja z interpreterem
+===========================
+
+NAT p - wywołaj procedurę natywną
+Opkod ten działa podobnie do WYWOŁAJ. Różnicą jest to, że podczas wykonywania
+nie są zmieniane rejestry Proc oraz PC, a ilość parametrów jest wzięta z
+wewnętrznego rejestru interpretera.
+
+Dostępność procedur natywnych jest zależna od interpretera. Liczby procedur
+00-FF są zarezerwowane dla następujących procedur standardowych:
+
+- 0x - I/O
+  - 00 (parametrów: 1) "PutC" - wyświetl liczbę całkowitą (dec).
+    Zwraca parametr.
+  - 01 (parametrów: 1) "PutZ" - wyświetl liczbę zmiennoprzecinkową (dec).
+    Zwraca parametr.
+  - 02 (parametrów: 1) "PutU" - wyświetl znak Unicode.
+    Zwraca parametr.
+  - 03 (parametrów: 0) "GetC" - odczytaj liczbę całkowitą (dec).
+  - 04 (parametrów: 0) "GetZ" - odczytaj liczbę zmiennoprzecinkową (dec).
+  - 05 (parametrów: 0) "GetU" - odczytaj znak Unicode.
+- 1x - pamięć
+  - 10 (parametrów: 1) "Alloc" - alokuj pamięć.
+    Parametr ustala liczbę wartości, które mają być dostępne w pamięci.
+    Zwraca blok pamięci.
+  - 11 (parametrów: 1) "Free" - zwolnij pamięć.
+    Parametr jest blokiem pamięci - wartością zwrotną procedury 10.
+    Zwraca 0.
+  - 12 (parametrów: 2) "Read" - czytaj pamięć.
+    Pierwszy parametr jest blokiem pamięci, drugi parametr jest indeksem
+    wartości. Indeks musi być mniejszy niż ilość wartości w danym bloku.
+    Zwraca odczytaną wartość.
+  - 13 (parametrów: 3) "Write" - wpisz do pamięci.
+    Pierwszy parametr jest blokiem pamięci, drugi parametr jest indeksem
+    wartości, trzeci parametr jest wartością która ma być wpisana.
+    Zwraca blok pamięci.
+- 2x - Ciągi znaków
+  - 20 (parametrów: 1) "Print" - wypisz ciąg znaków zakończony zerem w bloku
+    pamięci. Znaki muszą używać enkodowania UTF-8. Jeżeli bajt zerowy nie może
+    być odnaleziony, wypisywanie kończy się na końcowym bajcie bloku pamięci.
+    Bajty są odczytywane od najmniej znaczącego do najbardziej znaczącego.
+    Zwraca 0.
+
+-------------------------------------------
+JĘZYK COMES VIRTUAL MACHINE ASSEMBLY (CVMA)
+-------------------------------------------
+
+CVMA jest językiem towarzyszącym specyfikacji CVM, oraz jedynym sposobem na
+przenoszenie kodu między implementacjami.
+Kod CVMA używa enkodowania UTF-8.
+
+Analiza leksykalna
+==================
+CVMA jest językiem opartym na czytaniu indywidualnych linijek kodu. Linijki
+puste (po usuwaniu komentarzy) są ignorowane.
+
+Komentarze
+==========
+Komentarze w CVMA rozpoczynają się znakiem średnika ';' oraz kończą się z końcem
+linijki. Wszystkie komentarze usuwane są przed odczytaniem kodu.
+
+Spacje
+======
+Wszystkie spacje na początku oraz na końcu linijki są ignorowane.
+
+Typy danych
+===========
+
+Poszczególne części tej dokumentacji używają następujących typów danych:
+- dec - liczba naturalna w systemie dziesiętnym
+- hex - liczba naturalna w systemie szesnastkowym
+- str - ciąg znaków pomiędzy "". Dosłowny znak " można uzyskać używając \",
+  np. "Test \"test\""
+
+Istnieje możliwość użycia liczb dec w miejscu hex, oraz hex w miejscu dec:
+  PCHNIJ d10  ; wpycha wartość 10 (dziesiętną)
+  @Procedura d13 "Nazwa" xA  ; rozpoczyna procedurę 13 (dziesiętnie)
+                             ; akceptującą 10 argumentów
+Uwaga: ta składnia może być użyta w każdym miejscu gdzie akceptowane są dec oraz
+hex dla czytelności, na przykład w miejscu które akceptuje hex można użyć
+składni x123.
+
+Dyrektywy
+=========
+
+Dyrektywy instruują kompilator CVMA jak złożyć kod w jedną całość.
+Każda linijka rozpoczynająca się znakiem @ jest linijką z dyrektywą.
+
+Dostępne są następujące dyrektywy:
+
+@CVMA N
+  Instruuje interpreter CVMA o wersji języka. Poszczególne wersje nie zachowują
+  między sobą pełnej kompatybilności.
+  Jeżeli istnieje niezgodność wersji, interpreter kończy pracę błędem.
+  Obecna wersja wynosi 1.
+@Procedura XXXX "Nazwa" N
+  Rozpoczyna kompilację procedury o indeksie XXXX (hex), danej nazwie (str),
+  oraz ilości argumentów (dec).
+
+Instrukcje
+==========
+
+Wszystkie linijki które nie są puste oraz nie są dyrektywami interpretowane są
+jako instrukcje CVM. Składnia instrukcji zależy od jej operandu:
+
+- instrukcje z operandem 0 nie przyjmują żadnych dodatkowych argumentów:
+  USUŃ
+  DODAJ.Z
+- instrukcje z operandem x, y, z, a, p, używają składni hex:
+  PCHNIJ 10  ; wpycha 16 (dec) na stos
+  IDŹDO d13  ; przechodzi do 13-tej (dec) instrukcji
+- instrukcje z operandem n używają składni dec:
+  ZMIENNA.K 10  ; kopiuje wartość zmiennej nr 10 (dec)
+
+Instrukcję od operandu dzieli jedna lub więcej spacji. Po instrukcji nie może
+być żadnych dodatkowych danych.
+
+Z każdą kolejną instrukcją PC w programie zwiększa się o 1, poczynając od 0.
+Przykładowy program (nieskończony licznik) z adnotacjami adresów instrukcji:
+  PCHNIJ d0    ; 0
+  ZMIENNA.K 0  ; 1
+  PCHNIJ d1    ; 2
+  DODAJ.C      ; 3
+  ZMIENNA.U 0  ; 4
+  IDŹDO 1      ; 5
+
+Instrukcje nie mogą się pojawiać poza procedurami. Jeżeli pojawi się instrukcja
+poza procedurą, jest to błąd kompilacji i program nie jest uruchomiony.
