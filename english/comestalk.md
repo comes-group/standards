@@ -16,11 +16,11 @@ Source code for ComesTalk shall be encoded as UTF-8, with line endings being eit
 
 ComesTalk uses a limited set of lexemes, as described below. Below is a glossary of all supported lexemes.
 ```
-123 456.789                        # numbers
+123 456.789 -273.15                # numbers
 "abc"                              # strings
 test zażółć-gęślą-jaźń Test -test  # identifiers
 () {}                              # brackets
-: ; ' <- -> |                      # punctuation
+: ; ' = <- -> |                    # punctuation
 ```
 
 ### Whitespace and comments
@@ -33,7 +33,7 @@ Whitespace and comments may only be ignored on token boundaries; this means that
 
 ### Numbers
 
-Numbers in ComesTalk are represented by one or more decimal digits, optionally followed by a decimal separator and more decimal digits.
+Numbers in ComesTalk are represented by an optional negative sign `-` (2Dh), and one or more decimal digits, optionally followed by a decimal separator and more decimal digits.
 
 Decimal digits are specified as the ASCII characters in range `0`-`9` (30h-39h). The decimal separator is the ASCII character `.` (2Eh).
 
