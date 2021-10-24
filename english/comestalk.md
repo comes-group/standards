@@ -316,18 +316,16 @@ As shown in the example above, variables in the field store persist across diffe
 
 ### Closures
 
-Closures can be created using the syntax described previously, and may be called using the built-in `wywołaj-z:` group of methods (up to 16 arguments), or the `argument:` builder, which supports an indefinite amount of arguments.
+Closures can be created using the syntax described previously, and may be called using the built-in `od:i:`… group of methods (for up to 8 arguments), or the `aplikuj:` method, which allows for any amount of arguments.
 ```
 x = {:x y: -> x + y};
 
-# Call using wywołaj-z:oraz:
-x wywołaj-z: 1 oraz: 2 | wypisz;
+# Call using od:i:
+x od: 1 i: 2 | wypisz;
 
-# Call using argument:
-x argument: 1 | argument: 2 | wywołaj wypisz;
+# Call using aplikuj:
+x aplikuj: (Lista nowa | dopisz: 1 | dopisz: 2) | wypisz;
 ```
-
-Using `argument:` allows for _currying_, as it creates a new lightweight "Argument Proxy" each time it is called, which will call the destination closure once `wywołaj` is called on it.
 
 #### Returning
 
@@ -347,4 +345,16 @@ n = x
    nie: {:: -> 3};
 n wypisz;
 ```
-This convention of returning values from catching blocks is followed across the standard library.
+
+With how catching and non-catching blocks are implemented, the question of _which block gets to catch the response_ arises. The answer isn't the first catching block up the stack, but rather the first catching block in scope. Consider this example:
+```
+X <- uruchom:f {
+   f od: nic;
+}
+
+X uruchom: {
+   -> 8
+};
+```
+
+The response statement inside of the closure will in fact abort **the entire program, and not `uruchom:`,** with 8 being the result. This is because the innermost catching block in the response statement's scope was the program itself, and thus, that catching block will be aborted with 8.
