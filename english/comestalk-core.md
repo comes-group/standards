@@ -502,6 +502,70 @@ A loop closure is a specialization of the [closure type](#closure-type). A loop 
 
 When `Break` is returned, this signals the underlying loop that iteration should stop immediately. When `Continue` is returned, nothing should be done, and the loop should carry on to the next iteration.
 
+## Object type
+
+- **Type name:** `Obiekt`
+
+The object type can be used to create user-defined types.
+
+### `nowy:`
+
+- **English name:** `new:`
+- **Arguments:** `nowy:nazwa`, where `nazwa` is a [string](#string-type)
+- **Returns:** (described below)
+
+Creates a new object type with the given name. The newly created type will only implement the [fundamental messages](#fundamental-messages), and additional messages must be declared explicitly.
+
+#### Example
+
+```
+Wektor = Obiekt nowy: "Wektor";
+
+Wektor <- x:x y:y {
+   -x = x;
+   -y = y;
+}
+
+Wektor <- x { -> -x }
+Wektor <- y { -> -y }
+
+u = Wektor x: 30 y: 40;
+u x wypisz;  # 30
+u y wypisz;  # 40
+```
+
+### `nowy:od:`
+
+- **English name:** `new:from:`
+- **Arguments:** `nowy:nazwa od:baza`, where `nazwa` is a [string](#string-type), and `baza` is an object type
+- **Returns:** (described below)
+
+Creates a new object type with the given name, inheriting all messages from the provided object type.
+
+#### Example
+
+```
+Zwierzę = Obiekt nowy: "Zwierzę";
+
+Zwierzę <- inicjalizuj {
+   --ja nakarm;
+}
+
+Zwierzę <- nakarm {
+   -głód = 0;
+}
+
+Kot = Obiekt nowy: "Kot" od: Zwierzę;
+
+Kot <- miauknij {
+   "miau" wypisz;
+}
+
+mruczek = Kot inicjalizuj;
+mruczek nakarm;
+mruczek miauknij;
+```
+
 ## Loop type
 
 - **Type name:** `Powtarzaj`

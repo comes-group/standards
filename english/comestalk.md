@@ -277,11 +277,27 @@ Płótno <- rysuj:co x:x y:y {}                         # rysuj:x:y:
 
 The built-in `wypisz` message on the Object type makes use of this, allowing one to specify a writer that should write down the object.
 ```
-w = Sekretarz nowy
-1 wypisz
-1 wypisz: w
+w = Lista nowa;
+1 wypisz;
+1 wypisz: w;
 ```
 Usually the most specific overload should be overwritten in classes inheriting from another one, eg. `wypisz:` should be overwritten instead of `wypisz`.
+
+When a message is called on an object type, the receiver is implicitly created and assigned the appropriate type. For example:
+
+```
+Wektor = Obiekt nowy;
+Wektor <- x:x y:y {
+   -x = x;
+   -y = y;
+}
+
+u = Wektor x: 10 y: 20;
+```
+
+In this example, `--ja` in `Wektor`'s `x:y:` will not be `Wektor` itself, but rather a new, empty object, whose type is `Wektor`.
+
+The type of a value decides on what messages can be called on it. For more information on what messages are defined for which types, refer to the [Core Library Specification](comestalk-core.md) and the host application's documentation.
 
 ### Assignment
 
