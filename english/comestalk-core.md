@@ -618,7 +618,7 @@ Dodawacz <- dodaj-do:x {
 Dodawacz = Importuj moduł: "Dodawacz";
 
 dwa = Dodawacz nowy: 2;
-dwa doda-do: 3 | wypisz;
+dwa dodaj-do: 3 | wypisz;
 ```
 
 ### `plik:`
