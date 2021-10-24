@@ -244,19 +244,9 @@ The following variables are built-in and cannot be written to.
 - `nie` - false boolean value, singleton
 - `--ja` - the receiver of the current message, or `nic` if not in a message
 
-#### Built-in classes
+#### Built-in objects
 
-The following classes are built into the language and provide core facilities, such as math, list operations, literal blocks, and closures.
-
-- `Obiekt` - the Object type, from which all classes inherit from.
-- `Jądro` - the Core type, containing basic utilities.
-- `Liczba` - the Number type. Operations on numbers use this type as a method table.
-- `Lista` - the List type.
-   - String literals compile down to values of this type, containing Numbers.
-   - Literal blocks compile down to values of this type, containing Tokens.
-- `Token` - the Token (lexeme) type.
-- `Blok` - the Literal Block type. Used by literal blocks  `'{}`.
-- `Funkcja` - the Closure type. Used by closures `{:x: -> y}`.
+A complete list of built-in classes and the messages they accept can be found in the [Core Specification](comestalk-core.md).
 
 ### Messages
 
